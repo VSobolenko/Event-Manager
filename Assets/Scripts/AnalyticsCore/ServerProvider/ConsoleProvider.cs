@@ -1,12 +1,15 @@
-﻿using UnityEngine;
+﻿using System.Threading.Tasks;
+using UnityEngine;
 
 namespace AnalyticsCore.ServerProvider
 {
     internal class ConsoleProvider<T> : IServerProvider<T>
     {
-        public void Send(T data)
+        public async Task<int> Send(T data)
         {
-            Debug.Log(data);
+            await Task.Delay(1000);
+            
+            return 200;
         }
     }
 }

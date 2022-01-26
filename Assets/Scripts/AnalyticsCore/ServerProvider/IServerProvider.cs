@@ -1,7 +1,9 @@
-﻿namespace AnalyticsCore.ServerProvider
+﻿using System.Threading.Tasks;
+
+namespace AnalyticsCore.ServerProvider
 {
     internal interface IServerProvider<T>
     {
-        void Send(T data);
+        Task<int> Send(T data);
     }
 }

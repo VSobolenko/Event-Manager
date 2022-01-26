@@ -27,6 +27,13 @@ namespace AnalyticsCore
 
             _server.Send(jsonData);
         }
+        
+        public void PostToServer(EventData events)
+        {
+            var jsonData = JsonUtility.ToJson(events);
+
+            _server.Send(jsonData);
+        }
 
         private static string ToJson<T>(T[] array)
         {

@@ -11,11 +11,11 @@ public class EventService : MonoBehaviour
          *  For a quick test, can use the console as a server that receives events
          */
         
-        IServerProvider<string> server = new ServerProvider<string>("http://ptsv2.com/t/yhpqz-1643151353/post");
+        IServerProvider<string> server = new ServerProvider<string>("http://ptsv2.com/t/pchyg-1643227860/post");
         //IServerProvider<string> server = new ConsoleProvider<string>();
         var eventCore = new EventCore(server);
         
-        eventCore.PostToServer(GetExampleData());
+        eventCore.PostToServer(GetExampleData2());
     }
 
     public void TrackEvent(string type, string data)
@@ -31,5 +31,10 @@ public class EventService : MonoBehaviour
             new EventData {data = "data3", type = "MyType3"},
             new EventData {data = "data4", type = "MyType4"},
         };
+    }
+    
+    private EventData GetExampleData2()
+    {
+        return new EventData {data = "data1", type = "MyType1"};
     }
 }

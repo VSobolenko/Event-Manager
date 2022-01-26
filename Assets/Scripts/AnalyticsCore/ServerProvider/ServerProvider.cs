@@ -1,34 +1,37 @@
-﻿using System.IO;
-using System.Net;
+﻿using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using UnityEngine;
 
 namespace AnalyticsCore.ServerProvider
 {
     internal class ServerProvider<T> : IServerProvider<T>
     {
         private readonly string _serverUrl;
+        private HttpClient _httpClient;
 
         public ServerProvider(string serverUrl)
         {
             _serverUrl = serverUrl;
         }
 
-        public void Send(T data)
+        public async Task<int> Send(T data)
         {
-            var httpWebRequest = (HttpWebRequest) WebRequest.Create(_serverUrl);
-            httpWebRequest.ContentType = "application/json";
-            httpWebRequest.Method = "POST";
+            EnsureHttpClientCreated();
+            
+            var httpContent = new StringContent(data.ToString(), Encoding.UTF8, "application/json");
+            var httpResponse = await _httpClient.PostAsync(_serverUrl, httpContent);
+            
+            var statusCode = (int)httpResponse.StatusCode;
+            Debug.Log("Http response code " + statusCode);
+            return statusCode;
+        }
 
-            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+        private void EnsureHttpClientCreated()
+        {
+            if (_httpClient == null)
             {
-                streamWriter.Write(data);
-                streamWriter.Flush();
-                streamWriter.Close();
-            }
-
-            var httpResponse = (HttpWebResponse) httpWebRequest.GetResponse();
-            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-            {
-                var result = streamReader.ReadToEnd();
+                _httpClient = new HttpClient();
             }
         }
     }
