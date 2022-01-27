@@ -1,7 +1,6 @@
 ﻿using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace AnalyticsCore.ServerProvider
 {
@@ -21,10 +20,7 @@ namespace AnalyticsCore.ServerProvider
             
             var httpContent = new StringContent(data.ToString(), Encoding.UTF8, "application/json");
             var httpResponse = await _httpClient.PostAsync(_serverUrl, httpContent);
-            
-            var statusCode = (int)httpResponse.StatusCode;
-            Debug.Log("Http response code " + statusCode);
-            return statusCode;
+            return (int)httpResponse.StatusCode;
         }
 
         private void EnsureHttpClientCreated()

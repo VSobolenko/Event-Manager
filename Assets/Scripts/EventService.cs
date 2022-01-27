@@ -1,9 +1,12 @@
+using System;
 using AnalyticsCore;
 using AnalyticsCore.ServerProvider;
 using UnityEngine;
 
 public class EventService : MonoBehaviour
 {
+    private EventCore _eventCore;
+    
     private void Start()
     {
         /*
@@ -13,16 +16,25 @@ public class EventService : MonoBehaviour
         
         IServerProvider<string> server = new ServerProvider<string>("http://ptsv2.com/t/pchyg-1643227860/post");
         //IServerProvider<string> server = new ConsoleProvider<string>();
-        var eventCore = new EventCore(server);
         
-        eventCore.PostToServer(GetExampleData2());
+        _eventCore = new EventCore(server);
+        _eventCore.SetEventTimer(5);
+    }
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            _eventCore.PostToServer(GetExampleData());
+        }
     }
 
     public void TrackEvent(string type, string data)
     {
+        _eventCore.PostToServer(type, data);
     }
 
-    private EventData[] GetExampleData()
+    private EventData[] GetExampleArrayData()
     {
         return new[]
         {
@@ -33,7 +45,7 @@ public class EventService : MonoBehaviour
         };
     }
     
-    private EventData GetExampleData2()
+    private EventData GetExampleData()
     {
         return new EventData {data = "data1", type = "MyType1"};
     }
