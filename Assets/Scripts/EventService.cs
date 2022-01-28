@@ -1,18 +1,35 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
+using AnalyticsCore;
+using AnalyticsCore.SaveSystemProvider;
+using AnalyticsCore.ServerProvider;
 using UnityEngine;
 
 public class EventService : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private string urlServer;
+    
+    [Tooltip("In milliseconds")]
+    [SerializeField] private int cooldownBeforeSend = 5000;
+    private EventCore _eventCore;
+    
+    private void Awake()
     {
+        IServerProvider<string> server = new ServerProvider<string>(urlServer);
+        ISaveProvider<EventData> save = new FileProvider();
         
+        _eventCore = new EventCore(server, save);
+        _eventCore.EnableEventTimer(cooldownBeforeSend);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void TrackEvent(string type, string data)
     {
-        
+        _eventCore.PostToServer(type, data);
+    }
+
+    private int i = 0;
+    private EventData GetExampleData()
+    {
+        i++;
+        return new EventData {data = $"data{i}", type = $"MyType{i}"};
     }
 }
