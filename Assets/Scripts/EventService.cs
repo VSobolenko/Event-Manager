@@ -12,9 +12,9 @@ public class EventService : MonoBehaviour
     [SerializeField] private int cooldownBeforeSend = 5000;
     private EventCore _eventCore;
     
-    private void Start()
+    private void Awake()
     {
-        IServerProvider<string> server = new ServerProvider<string>("urlServer");
+        IServerProvider<string> server = new ServerProvider<string>(urlServer);
         ISaveProvider<EventData> save = new FileProvider();
         
         _eventCore = new EventCore(server, save);

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace AnalyticsCore.SaveSystemProvider
@@ -8,22 +9,30 @@ namespace AnalyticsCore.SaveSystemProvider
     public class FileProvider : ISaveProvider<EventData>
     {
         private string _filePath = Application.persistentDataPath + Path.DirectorySeparatorChar + "/EventsData.txt";
+
+        public FileProvider()
+        {
+            if (!HasData)
+            {
+                File.Create(_filePath);
+            }
+        }
         
         public void SaveData(params EventData[] data)
         {
-            CheckForExistFile(true);
-            
             var jsonData = new List<string>();
+            
             foreach (var savableData in data)
             {
                 jsonData.Add(JsonUtility.ToJson(savableData));
             }
+
             File.AppendAllLines(_filePath, jsonData);
         }
 
         public EventData[] LoadData()
         {
-            if (CheckForExistFile() == false)
+            if (HasData == false)
             {
                 return new EventData[0];
             }
@@ -42,21 +51,5 @@ namespace AnalyticsCore.SaveSystemProvider
         }
 
         public bool HasData => File.Exists(_filePath);
-
-        private bool CheckForExistFile( bool createIfNotFound = false)
-        {
-            if (HasData)
-            {
-                return true;
-            }
-
-            if (createIfNotFound && !HasData)
-            {
-                File.Create(_filePath);
-                return true;
-            }
-
-            return false;
-        }
     }
 }

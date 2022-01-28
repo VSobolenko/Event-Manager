@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using AnalyticsCore.SaveSystemProvider;
 using AnalyticsCore.ServerProvider;
 using UnityEngine;
+using Timer = System.Timers.Timer;
 
 namespace AnalyticsCore
 {
-    internal class EventCore : IDisposable
+    internal class EventCore
     {
         public double CooldownBeforeSend
         {
@@ -28,7 +30,21 @@ namespace AnalyticsCore
             _server = server;
             _save = save;
 
-            SendDataToServer();
+            var thread = new Thread(InvokeFirstInitialize);
+            thread.Start();
+        }
+
+        private async void InvokeFirstInitialize()
+        {
+            Debug.Log($"<color=#00FF00>[events]</color> First server initialization");
+            
+            var statusCode=  await SendDataToServer();
+            if (statusCode == 200)
+            {
+                _save.ClearData();
+                //_queueData.Clear();
+                Debug.Log($"<color=#00FF00>[events]</color> Complete load data to server");
+            }
         }
 
         public void PostToServer(string type, string data)
@@ -36,17 +52,9 @@ namespace AnalyticsCore
             Debug.Log($"<color=#00FF00>[events]</color> Add new event to queue:\n {type}; {data}");
             var eventData = new EventData {data = data, type = type};
             _queueData.Enqueue(eventData);
+            _save.SaveData(eventData);
         }
-
-        public void PostToServer(params EventData[] events)
-        {
-            foreach (var item in events)
-            {
-                _queueData.Enqueue(item);
-            }
-            Debug.Log("<color=#00FF00>[events]</color> Add new array events to queue");
-        }
-
+        
         public void EnableEventTimer(float cooldownBeforeSend)
         {
             _timer = new Timer(cooldownBeforeSend) {AutoReset = true};
@@ -66,7 +74,7 @@ namespace AnalyticsCore
 
             if (statusCode != 200)
             {
-                _save.SaveData(_queueData.ToArray());
+                //_save.SaveData(_queueData.ToArray());
                 Debug.Log("<color=#00FF00>[events]</color> The server is not available or there is no internet connection");
             }
             else
@@ -84,10 +92,16 @@ namespace AnalyticsCore
             var statusCode = 0;
             if (await _server.HasConnection())
             { 
-                Debug.Log("<color=#00FF00>[events]</color> Attempt to send data to the server ...");
                 LoadExistsEvents();
+                
+                if (_queueData.Count < 1)
+                {
+                    return statusCode;
+                }
+                
                 var sendData = ToJson(_queueData.ToArray());
                 statusCode = await _server.Send(sendData);
+
                 return statusCode;
             }
             
@@ -97,26 +111,14 @@ namespace AnalyticsCore
         private void LoadExistsEvents()
         {
             var data = _save.LoadData();
+            _queueData.Clear();
             foreach (var eventData in data)
             {
                 _queueData.Enqueue(eventData);
             }
-            Debug.Log($"<color=#00FF00>[events]</color> Complete load data. Count = {data.Length}\n Data: {ToJson(data)}");
+            Debug.Log($"<color=#00FF00>[events]</color> Complete loading existing data. Count = {data.Length}");
         }
 
-        ~EventCore()
-        {
-            Dispose();
-        }
-        
-        public void Dispose()
-        {
-            if(_queueData.Count < 1) return;
-            
-            Debug.Log("<color=#00FF00>[events]</color> Unsent data saved");
-            _save.SaveData(_queueData.ToArray());
-        }
-        
         private static string ToJson<T>(T[] array)
         {
             var wrapper = new Wrapper<T> {events = array};
