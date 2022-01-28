@@ -11,5 +11,12 @@ namespace AnalyticsCore.ServerProvider
             
             return 200;
         }
+
+        public async Task<bool> HasConnection()
+        {
+            await Task.Delay(1000);
+            
+            return true;
+        }
     }
 }

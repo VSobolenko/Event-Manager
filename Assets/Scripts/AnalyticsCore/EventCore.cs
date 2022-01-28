@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using System.Timers;
+using AnalyticsCore.SaveSystemProvider;
 using AnalyticsCore.ServerProvider;
 using UnityEngine;
 
@@ -12,12 +14,15 @@ namespace AnalyticsCore
         public float CooldownBeforeSend { get; set; }
         
         private readonly IServerProvider<string> _server;
+        private readonly ISaveProvider<EventData> _save;
+        
         private Queue<EventData> _queueData = new Queue<EventData>();
         private Timer _timer;
 
-        public EventCore(IServerProvider<string> server)
+        public EventCore(IServerProvider<string> server, ISaveProvider<EventData> save)
         {
             _server = server;
+            _save = save;
         }
 
         public void PostToServer(string type, string data)
@@ -44,6 +49,16 @@ namespace AnalyticsCore
             _timer.Start();
         }
 
+        private async Task LoadExistsEvents()
+        {
+            Debug.Log("Load exists data");
+            var data = await _save.LoadData();
+            Debug.Log($"Complete load data. Count = {data.Length}\n {ToJson(data)}");
+            foreach (var eventData in data)
+            {
+                _queueData.Enqueue(eventData);
+            }
+        }
         private async void OnTimedEvent(object sender, ElapsedEventArgs e)
         {
             if (_queueData.Count < 1)
@@ -51,9 +66,26 @@ namespace AnalyticsCore
                 return;
             }
             _timer.Stop();
-            var sendData = new StringBuilder();
-            sendData.Append(ToJson(_queueData.ToArray()));
-            var statusCode = await _server.Send(sendData.ToString());
+
+            int statusCode = 0;
+            string sendData = "";
+            if (await _server.HasConnection())
+            { 
+                await LoadExistsEvents();
+                Debug.Log("Try send");
+                sendData = ToJson(_queueData.ToArray());
+                statusCode = await _server.Send(sendData);
+            }
+            else
+            {
+                Debug.Log("Not internet");
+            }
+            
+            if (statusCode != 200)
+            {
+                Debug.Log("Server does not invoke. Start save data");
+                await _save.SaveData(_queueData.ToArray());
+            }
             _queueData.Clear();
             _timer.Start();
             

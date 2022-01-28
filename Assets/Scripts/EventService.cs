@@ -1,5 +1,6 @@
 using System;
 using AnalyticsCore;
+using AnalyticsCore.SaveSystemProvider;
 using AnalyticsCore.ServerProvider;
 using UnityEngine;
 
@@ -14,11 +15,10 @@ public class EventService : MonoBehaviour
          *  For a quick test, can use the console as a server that receives events
          */
         
-        IServerProvider<string> server = new ServerProvider<string>("http://ptsv2.com/t/pchyg-1643227860/post");
-        //IServerProvider<string> server = new ConsoleProvider<string>();
-        
-        _eventCore = new EventCore(server);
-        _eventCore.SetEventTimer(5);
+        IServerProvider<string> server = new ServerProvider<string>("http://ptsv2.com/t/0ib3x-1643315681/post");
+        ISaveProvider<EventData> save = new FileProvider<EventData>();
+        _eventCore = new EventCore(server, save);
+        _eventCore.SetEventTimer(5000);
     }
 
     private void Update()
@@ -44,9 +44,11 @@ public class EventService : MonoBehaviour
             new EventData {data = "data4", type = "MyType4"},
         };
     }
-    
+
+    private int i = 0;
     private EventData GetExampleData()
     {
-        return new EventData {data = "data1", type = "MyType1"};
+        i++;
+        return new EventData {data = $"data{i}", type = $"MyType{i}"};
     }
 }

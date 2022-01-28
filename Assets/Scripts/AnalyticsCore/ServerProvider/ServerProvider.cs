@@ -1,6 +1,8 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace AnalyticsCore.ServerProvider
 {
@@ -23,11 +25,29 @@ namespace AnalyticsCore.ServerProvider
             return (int)httpResponse.StatusCode;
         }
 
+        public async Task<bool> HasConnection()
+        {
+            var ping = new System.Net.NetworkInformation.Ping();
+            try
+            {
+                var result = await ping.SendPingAsync("www.google.com", 500);
+
+                Debug.Log($"Try ping server. Result = {result.Status}");
+                if (result.Status == System.Net.NetworkInformation.IPStatus.Success)
+                    return true;
+                return false;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
         private void EnsureHttpClientCreated()
         {
             if (_httpClient == null)
             {
-                _httpClient = new HttpClient();
+                _httpClient = new HttpClient {Timeout = TimeSpan.FromMilliseconds(5000)};
             }
         }
     }
