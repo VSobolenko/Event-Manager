@@ -31,13 +31,12 @@ namespace AnalyticsCore.ServerProvider
             try
             {
                 var result = await ping.SendPingAsync("www.google.com", 500);
-
-                Debug.Log($"Try ping server. Result = {result.Status}");
+                
                 if (result.Status == System.Net.NetworkInformation.IPStatus.Success)
                     return true;
                 return false;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }

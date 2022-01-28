@@ -3,7 +3,7 @@
 namespace AnalyticsCore
 {
     [Serializable]
-    internal class EventData
+    public class EventData
     {
         public string data;
         public string type;

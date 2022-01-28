@@ -7,15 +7,13 @@ namespace AnalyticsCore.SaveSystemProvider
     {
         private List<T> _data = new List<T>();
         
-        public async Task SaveData(params T[] data)
+        public void SaveData(params T[] data)
         {
             _data.AddRange(data);
-            await Task.Delay(10);
         }
 
-        public async Task<T[]> LoadData()
+        public T[] LoadData()
         {
-            await Task.Delay(10);
             return _data.ToArray();
         }
 
@@ -23,5 +21,7 @@ namespace AnalyticsCore.SaveSystemProvider
         {
             _data.Clear();
         }
+
+        public bool HasData => _data.Count > 0;
     }
 }

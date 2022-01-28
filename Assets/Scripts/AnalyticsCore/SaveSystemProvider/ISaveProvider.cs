@@ -4,8 +4,10 @@ namespace AnalyticsCore.SaveSystemProvider
 {
     public interface ISaveProvider<T>
     {
-        Task SaveData(params T[] data);
-        Task<T[]> LoadData();
-        void ClearData();
+        void SaveData(params T[] data);
+        T[] LoadData();
+        void ClearData(); 
+        
+        bool HasData { get; }
     }
 }
