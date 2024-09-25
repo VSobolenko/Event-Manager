@@ -1,35 +1,32 @@
-using System;
-using AnalyticsCore;
-using AnalyticsCore.SaveSystemProvider;
-using AnalyticsCore.ServerProvider;
+using AnalyticsService;
+using AnalyticsService.SaveSystemProvider;
+using AnalyticsService.ServerProviders;
 using UnityEngine;
 
 public class EventService : MonoBehaviour
 {
     [SerializeField] private string urlServer;
-    
-    [Tooltip("In milliseconds")]
-    [SerializeField] private int cooldownBeforeSend = 5000;
+
+    [Tooltip("In milliseconds")] [SerializeField]
+    private int cooldownBeforeSend = 5000;
+
     private EventCore _eventCore;
-    
+
     private void Awake()
     {
-        IServerProvider<string> server = new ServerProvider<string>(urlServer);
-        ISaveProvider<EventData> save = new FileProvider();
-        
-        _eventCore = new EventCore(server, save);
-        _eventCore.EnableEventTimer(cooldownBeforeSend);
+        var server = new ServerProvider(urlServer);
+        var save = new FileProvider();
+
+        _eventCore = new EventCore(server, save, cooldownBeforeSend);
     }
 
     public void TrackEvent(string type, string data)
     {
-        _eventCore.PostToServer(type, data);
+        _eventCore.TrackEvent(type, data);
     }
 
-    private int i = 0;
-    private EventData GetExampleData()
+    private void OnDestroy()
     {
-        i++;
-        return new EventData {data = $"data{i}", type = $"MyType{i}"};
+        _eventCore.Dispose();
     }
 }

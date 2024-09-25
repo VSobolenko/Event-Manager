@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace AnalyticsCore
+namespace AnalyticsService
 {
     [Serializable]
     public class EventData
     {
-        public string data;
         public string type;
+        public string data;
     }
 }

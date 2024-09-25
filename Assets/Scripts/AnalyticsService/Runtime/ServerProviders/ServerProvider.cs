@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace AnalyticsCore.ServerProvider
+namespace AnalyticsService.ServerProviders
 {
-    internal class ServerProvider<T> : IServerProvider<T>
+    public class ServerProvider : IServerProvider
     {
         private readonly string _serverUrl;
         private HttpClient _httpClient;
@@ -16,13 +17,14 @@ namespace AnalyticsCore.ServerProvider
             _serverUrl = serverUrl;
         }
 
-        public async Task<int> Send(T data)
+        public async Task<HttpStatusCode> Send(object data)
         {
             EnsureHttpClientCreated();
-            
-            var httpContent = new StringContent(data.ToString(), Encoding.UTF8, "application/json");
+
+            var json = ToJson(data);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
             var httpResponse = await _httpClient.PostAsync(_serverUrl, httpContent);
-            return (int)httpResponse.StatusCode;
+            return httpResponse.StatusCode;
         }
 
         public async Task<bool> HasConnection()
@@ -31,7 +33,7 @@ namespace AnalyticsCore.ServerProvider
             try
             {
                 var result = await ping.SendPingAsync("www.google.com", 500);
-                
+
                 if (result.Status == System.Net.NetworkInformation.IPStatus.Success)
                     return true;
                 return false;
@@ -44,10 +46,12 @@ namespace AnalyticsCore.ServerProvider
 
         private void EnsureHttpClientCreated()
         {
-            if (_httpClient == null)
-            {
-                _httpClient = new HttpClient {Timeout = TimeSpan.FromMilliseconds(5000)};
-            }
+            _httpClient ??= new HttpClient {Timeout = TimeSpan.FromMilliseconds(5000)};
+        }
+
+        private static string ToJson(object data)
+        {
+            return JsonUtility.ToJson(data);
         }
     }
 }
