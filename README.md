@@ -2,7 +2,6 @@
 2021.3.11f1
 
 # Settings
-For example, there is a Main scene where you can send data<br>
 To configure the server, in the Url Server field, enter the address of the server, the EventService object<br>
 You can use the free server for testing: https://posttestserver.dev/<br>
 It is possible to change the cooldownBeforeSend and serverUrl of the EventService object<br>
